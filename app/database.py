@@ -7,7 +7,7 @@ DATABASE_URL = "sqlite:///./test.db"
 
 # Создаем движок для подключения к базе данных, который управляет пулом подключений и диалектом SQL.
 # `create_engine` создаёт объект Engine, который используется для взаимодействия с базой данных.
-engine = create_engine(DATABASE_URL)
+engine = create_engine(DATABASE_URL, echo=True)
 
 # Создаем фабрику сессий для взаимодействия с базой данных.
 # `sessionmaker` возвращает объект класса, который можно использовать для создания сессий.
@@ -23,6 +23,7 @@ class Base(DeclarativeBase):
 
     https://docs.sqlalchemy.org/en/20/orm/declarative_styles.html
     """
+
     pass
 
 
