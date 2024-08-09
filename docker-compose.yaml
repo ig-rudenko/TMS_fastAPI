@@ -1,39 +1,43 @@
 services:
 
   web-app:
-    build: .
-    image: fastapi-test:0.1
-    restart: always
-    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    build: .  # Собираем образ из текущей директории (используя Dockerfile).
+    image: fastapi-test:0.1  # Имя и тег Docker-образа.
+    restart: always  # Автоматически перезапускать контейнер при сбое.
+
+    command: uvicorn main:app --host 0.0.0.0 --port 8000  # Запускаем FastAPI приложение с Uvicorn.
     environment:
-      CELERY_BROKER_URL: amqp://admin:admin@broker:5672/
-      CELERY_RESULT_BACKEND: redis://cache:6379/
+      CELERY_BROKER_URL: amqp://admin:admin@broker:5672/  # URL брокера задач (RabbitMQ) для Celery.
+      CELERY_RESULT_BACKEND: redis://cache:6379/  # URL бэкенда результатов задач (Redis) для Celery.
     ports:
-      - "8000:8000"
+      - "8000:8000"  # доступ к веб-приложению.
     volumes:
-      - ./test.db:/app/test.db
+      - ./test.db:/app/test.db  # Монтируем локальный файл базы данных в контейнер.
 
   celery-worker:
-    image: fastapi-test:0.1
-    restart: always
+    image: fastapi-test:0.1  # Используем тот же образ, что и для веб-приложения.
+    restart: always  # Автоматически перезапускать контейнер при сбое.
+
+    # Запускаем Celery воркер с использованием приложения, указанного в конфигурации.
     command: celery -A app.services.celery_tasks.celery:app worker -l info -Q celery
+
     environment:
       CELERY_BROKER_URL: amqp://admin:admin@broker:5672/
       CELERY_RESULT_BACKEND: redis://cache:6379/
     volumes:
-      - ./test.db:/app/test.db
+      - ./test.db:/app/test.db  # Монтируем локальный файл базы данных в контейнер.
 
   broker:
-    image: rabbitmq:3.13.6-management
-    restart: always
+    image: rabbitmq:3.13.6-management  # Используем RabbitMQ в качестве брокера задач с web-интерфейсом управления.
+    restart: always  # Автоматически перезапускать контейнер при сбое.
     environment:
-      RABBITMQ_DEFAULT_USER: admin
-      RABBITMQ_DEFAULT_PASS: admin
+      RABBITMQ_DEFAULT_USER: admin  # Имя пользователя по умолчанию для RabbitMQ.
+      RABBITMQ_DEFAULT_PASS: admin  # Пароль пользователя по умолчанию для RabbitMQ.
     ports:
-      - "15672:15672"
+      - "15672:15672"  # доступ к web-интерфейсу RabbitMQ.
     volumes:
-      - "./rabbitmq:/var/lib/rabbitmq"
+      - "./rabbitmq:/var/lib/rabbitmq"  # Монтируем локальную директорию для хранения данных RabbitMQ.
 
   cache:
-    image: redis:7.2.4-alpine
-    restart: always
+    image: redis:7.2.4-alpine  # Используем Redis в качестве бэкенда для хранения результатов задач Celery.
+    restart: always  # Автоматически перезапускать контейнер при сбое.

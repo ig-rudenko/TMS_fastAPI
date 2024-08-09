@@ -45,8 +45,9 @@ def register_user(user: UserCreateSchema, session: Session = Depends(get_session
 @router.post("/token", response_model=TokenPairSchema)
 async def get_tokens(user_data: UserCredentialsSchema, session: Session = Depends(get_session)):
     """Получение пары JWT"""
-    # Пример вызова асинхронной задачи
-    some_task.delay(100, 7)
+
+    some_task.delay(100, 7)  # Пример вызова асинхронной задачи
+
     user = await get_user_by_credentials(session, user_data.username, user_data.password)
     return create_jwt_token_pair(user_id=user.id)
 
