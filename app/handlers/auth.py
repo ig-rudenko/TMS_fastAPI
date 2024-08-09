@@ -4,19 +4,24 @@ from sqlalchemy.exc import IntegrityError
 
 from app.database import get_session
 from app.models import User
-from app.schemas.auth import UserCreateSchema, UserSchema, UserCredentialsSchema, TokenPairSchema, RefreshTokenSchema, \
-    AccessTokenSchema
+from app.schemas.auth import (
+    UserCreateSchema,
+    UserSchema,
+    UserCredentialsSchema,
+    TokenPairSchema,
+    RefreshTokenSchema,
+    AccessTokenSchema,
+)
 from app.services.auth import create_jwt_token_pair, refresh_access_token
 from app.services.users import create_user, get_user_by_credentials, get_current_user
+from app.services.celery_tasks.celery import some_task
 
 # Создаем роутер для маршрутов аутентификации с префиксом "/auth" и тегом "auth"
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/users", response_model=UserSchema)
-def register_user(
-        user: UserCreateSchema, session: Session = Depends(get_session, use_cache=True)
-):
+def register_user(user: UserCreateSchema, session: Session = Depends(get_session, use_cache=True)):
     """
     Регистрация нового пользователя.
 
@@ -40,6 +45,8 @@ def register_user(
 @router.post("/token", response_model=TokenPairSchema)
 async def get_tokens(user_data: UserCredentialsSchema, session: Session = Depends(get_session)):
     """Получение пары JWT"""
+    # Пример вызова асинхронной задачи
+    some_task.delay(100, 7)
     user = await get_user_by_credentials(session, user_data.username, user_data.password)
     return create_jwt_token_pair(user_id=user.id)
 

@@ -1,0 +1,7 @@
+*
+!app
+!migrations
+!alembic.ini
+!main.py
+!poetry.lock
+!pyproject.toml

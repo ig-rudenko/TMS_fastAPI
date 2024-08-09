@@ -1,0 +1,39 @@
+services:
+
+  web-app:
+    build: .
+    image: fastapi-test:0.1
+    restart: always
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+    environment:
+      CELERY_BROKER_URL: amqp://admin:admin@broker:5672/
+      CELERY_RESULT_BACKEND: redis://cache:6379/
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./test.db:/app/test.db
+
+  celery-worker:
+    image: fastapi-test:0.1
+    restart: always
+    command: celery -A app.services.celery_tasks.celery:app worker -l info -Q celery
+    environment:
+      CELERY_BROKER_URL: amqp://admin:admin@broker:5672/
+      CELERY_RESULT_BACKEND: redis://cache:6379/
+    volumes:
+      - ./test.db:/app/test.db
+
+  broker:
+    image: rabbitmq:3.13.6-management
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    ports:
+      - "15672:15672"
+    volumes:
+      - "./rabbitmq:/var/lib/rabbitmq"
+
+  cache:
+    image: redis:7.2.4-alpine
+    restart: always
