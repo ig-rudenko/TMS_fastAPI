@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session, selectinload
 
 from app.models import Post, Tag, User
 from app.schemas.posts import CreatePostSchema
+from app.services.cache import get_cache
 
 
 def get_posts(session: Session) -> Sequence[Post]:
@@ -12,15 +13,23 @@ def get_posts(session: Session) -> Sequence[Post]:
     Возвращает все посты из базы данных.
 
     :param session: Объект сессии для взаимодействия с базой данных.
+    :param cache: Объект кэша.
     :return: Список всех постов.
     """
+    cache = get_cache()
+
     # `session.scalars(...)` Выполняет запрос и возвращает результаты в виде скаляров (одиночных значений),
     # представляющих записи Post.
     # `selectinload(Post.tags)` используется для выполнения эффективного запроса и загрузки тегов
     # (связанных объектов Tag) вместе с основными записями Post в одном запросе.
     # Это предотвращает проблему "N+1 запросов", когда для каждой записи Post делается отдельный
     # запрос для загрузки связанных Tag.
-    return session.scalars(select(Post).options(selectinload(Post.tags))).all()
+
+    data = cache.get("posts")
+    if data is None:
+        data = session.scalars(select(Post).options(selectinload(Post.tags))).all()
+        cache.set("posts", data, 10)
+    return data
 
 
 def create_post(session: Session, post_data: CreatePostSchema, user: User) -> Post:

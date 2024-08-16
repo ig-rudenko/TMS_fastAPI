@@ -22,6 +22,10 @@ redis = "^5.0.8"
 
 [tool.poetry.group.dev.dependencies]
 black = {extras = ["d"], version = "^24.8.0"}
+mypy = "^1.11.1"
+types-passlib = "^1.7.7.20240327"
+types-python-jose = "^3.3.4.20240106"
+celery-types = "^0.22.0"
 
 [build-system]
 requires = ["poetry-core"]

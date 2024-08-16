@@ -1,3 +1,5 @@
+from typing import Generator
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, DeclarativeBase, Session
 
@@ -27,7 +29,7 @@ class Base(DeclarativeBase):
     pass
 
 
-def get_session() -> Session:
+def get_session() -> Generator[Session]:
     """
     Генератор, который создает сессию для взаимодействия с базой данных
     и автоматически закрывает её после завершения работы.
